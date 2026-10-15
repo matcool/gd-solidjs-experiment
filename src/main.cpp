@@ -14,8 +14,20 @@ public:
 
 		this->setKeypadEnabled(true);
 
-		script = loadScript(this, "C:\\Users\\Mateus\\Coding\\qjs-solid\\scripts\\app.js");
+		auto root = CCNode::create();
+		root->setLayout(
+			SimpleColumnLayout::create()
+			->setMainAxisScaling(AxisScaling::Grow)
+			->setCrossAxisScaling(AxisScaling::Grow)
+		);
+		root->setAnchorPoint(ccp(0.5, 0.5));
+
+		this->addChildAtPosition(root, Anchor::Center);
+		this->ignoreAnchorPointForPosition(true);
+
+		script = loadScript(root, "C:\\Users\\Mateus\\Coding\\qjs-solid\\scripts\\app.js");
 		this->scheduleUpdate();
+		this->ignoreAnchorPointForPosition(true);
 
 		return true;
 	}

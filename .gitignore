@@ -2,5 +2,7 @@ build/
 .cache/
 .vscode/
 old/
-renderer/
+renderer/*
 *.mjs
+!renderer/renderer.js
+!renderer/package.json

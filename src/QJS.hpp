@@ -112,10 +112,17 @@ namespace qjs {
         Promise createPromise();
         Value createFunctionBare(std::string_view name, std::function<CppFunction> function);
 
+        /// function(ctx, thisValue, ...callArgs)
         template <class F>
         Value createFunction(std::string_view name, F&& function);
+
+        template <class T>
+        Value createCpp(T&& cppValue);
         
         Result<Module> eval(std::string_view code, std::string_view filename);
+
+        Value getClassProto(JSClassID id) const;
+        bool isInstanceOfClass(Value const& value, std::string_view name) const;
     };
 
     class Value final {
@@ -159,6 +166,7 @@ namespace qjs {
         bool isObject() const;
         bool isPromise() const;
         bool isClass(JSClassID id) const;
+        bool isFunction() const;
 
         Runtime getRuntime() const;
         JSValue takeValue() &&;
@@ -202,6 +210,10 @@ namespace qjs {
         std::optional<int32_t> toInt32() const;
         std::optional<double> toNumber() const;
         std::string toString() const;
+
+        std::optional<Value> getPrototype() const;
+        void setPrototype(Value const& proto);
+        bool isInstanceOf(Value const& proto) const;
     };
 
     class Module final {
@@ -284,6 +296,14 @@ namespace qjs {
             }
         };
         static_assert(IsValidJsTypeToCpp<Value>);
+
+        template <>
+        struct JsTypeToCpp<JSValue> {
+            static Value to(Context ctx, JSValue value) {
+                return Value::copy(ctx, value);
+            }
+        };
+        // static_assert(IsValidJsTypeToCpp<Value>);
 
         template <>
         struct JsTypeToCpp<bool> {
@@ -617,6 +637,11 @@ namespace qjs {
     template <class F>
     Value Context::createFunction(std::string_view name, F&& function) {
         return this->createFunctionBare("", detail::wrapFunction<F>(name, std::move(function)));
+    }
+
+    template <class T>
+    Value Context::createCpp(T&& value) {
+        return detail::JsTypeToCpp<std::remove_cvref_t<T>>::to(*this, std::forward<T>(value));
     }
 
     template <class Get>

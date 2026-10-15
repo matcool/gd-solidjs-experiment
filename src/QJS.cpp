@@ -276,6 +276,16 @@ Result<Module> Context::eval(std::string_view code, std::string_view filename) {
     return Ok(Module::own(*this, def, std::move(eval)));
 }
 
+Value Context::getClassProto(JSClassID id) const {
+    return Value::own(*this, JS_GetClassProto(m_ctx, id));
+}
+
+bool Context::isInstanceOfClass(const Value& value, std::string_view name) const {
+    auto id = this->getRuntime().getClassID(name);
+    if (!id) return false;
+    return value.isInstanceOf(this->getClassProto(*id));
+}
+
 std::variant<Context, Runtime> Value::copyCtxOrRt(std::variant<Context, Runtime> const& other) {
     if (other.index() == 0) {
         return std::get<0>(other);
@@ -430,6 +440,10 @@ bool Value::isPromise() const {
 bool Value::isClass(JSClassID id) const {
     return JS_GetClassID(m_value) == id;
 }
+bool Value::isFunction() const {
+    auto ctx = std::get_if<0>(&m_ctxOrRt);
+    return ctx && JS_IsFunction(ctx->getRaw(), m_value);
+}
 
 Runtime Value::getRuntime() const {
     if (m_ctxOrRt.index() == 0) {
@@ -574,7 +588,7 @@ std::unordered_map<std::string, Value> Value::getProperties() const {
 
     JSPropertyEnum* props = nullptr;
     uint32_t propCount;
-    if (JS_GetOwnPropertyNames(ctx->getRaw(), &props, &propCount, m_value, JS_GPN_STRING_MASK | JS_GPN_ENUM_ONLY) <= 0) {
+    if (JS_GetOwnPropertyNames(ctx->getRaw(), &props, &propCount, m_value, JS_GPN_STRING_MASK | JS_GPN_ENUM_ONLY) < 0) {
         return {};
     }
 
@@ -627,6 +641,38 @@ std::string Value::toString() const {
     auto ret = std::string(alloc);
     JS_FreeCString(ctx->getRaw(), alloc);
     return ret;
+}
+
+std::optional<Value> Value::getPrototype() const {
+    auto ctx = std::get_if<0>(&m_ctxOrRt);
+    if (!ctx || !this->isObject()) return std::nullopt;
+    return Value::own(*ctx, JS_GetPrototype(ctx->getRaw(), m_value));
+}
+
+void Value::setPrototype(const Value &proto) {
+    auto ctx = std::get_if<0>(&m_ctxOrRt);
+    if (!ctx) return;
+    JS_SetPrototype(ctx->getRaw(), m_value, proto.m_value);
+}
+
+bool Value::isInstanceOf(Value const& proto) const {
+    auto ctx = std::get_if<0>(&m_ctxOrRt);
+    if (!ctx || !this->isObject()) return false;
+    JSContext* raw = ctx->getRaw();
+
+    JSValue cur = JS_GetPrototype(raw, m_value);
+    bool found = false;
+    while (JS_IsObject(cur)) {
+        if (JS_IsStrictEqual(raw, cur, proto.m_value)) {
+            found = true;
+            break;
+        }
+        JSValue next = JS_GetPrototype(raw, cur);
+        JS_FreeValue(raw, cur);
+        cur = next;
+    }
+    JS_FreeValue(raw, cur);
+    return found;
 }
 
 Module::Module(Context ctx, JSModuleDef* modValue, Value modulePromise)

@@ -1,0 +1,17 @@
+{
+  "name": "renderer",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "b": "babel app.jsx -o dist/app.compiled.mjs"
+  },
+  "dependencies": {
+    "htm": "^3.1.1",
+    "solid-js": "^1.9.17"
+  }
+}
