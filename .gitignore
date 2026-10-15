@@ -1,0 +1,6 @@
+build/
+.cache/
+.vscode/
+old/
+renderer/
+*.mjs
