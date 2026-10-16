@@ -14,6 +14,7 @@ struct qjs::detail::JsTypeToCpp<CCNode*> {
         return Ok(arg.getOpaque<CCNode*>());
     }
     static Value to(Context ctx, CCNode* value) {
+        if (!value) return ctx.createNull();
         auto ret = ctx.createObject(*ctx.getRuntime().getClassID("Node"));
         value->retain();
         ret.setOpaque(value);
@@ -31,6 +32,7 @@ struct qjs::detail::JsTypeToCpp<geode::Label*> {
         return Ok(arg.getOpaque<geode::Label*>());
     }
     static Value to(Context ctx, geode::Label* value) {
+        if (!value) return ctx.createNull();
         auto ret = ctx.createObject(*ctx.getRuntime().getClassID("Label"));
         value->retain();
         ret.setOpaque(value);
@@ -107,6 +109,11 @@ static qjs::Value createAnyNode(qjs::Context ctx, qjs::Value, std::vector<qjs::V
     return ctx.createNull();
 }
 
+static double addrToId(void* ptr) {
+    auto bits = std::bit_cast<uintptr_t>(ptr);
+    return static_cast<double>(bits);
+}
+
 std::unique_ptr<Script> loadScript(CCNode* node, std::string_view path) {
     auto file = utils::file::readString(path);
     if (!file) {
@@ -124,7 +131,7 @@ std::unique_ptr<Script> loadScript(CCNode* node, std::string_view path) {
     
     global.setProperty("getScene", ctx.createFunction("getScene", [node](qjs::Context, qjs::Value) { return node; }));
     global.setProperty("createLabelNode",
-        ctx.createFunction("createLabelNode", +[](qjs::Context, qjs::Value, std::string text) {
+        ctx.createFunction("createLabelNode", [](qjs::Context, qjs::Value, std::string text) {
             auto* label = geode::Label::create(text, "bigFont.fnt");
             return label;
         })
@@ -137,12 +144,17 @@ std::unique_ptr<Script> loadScript(CCNode* node, std::string_view path) {
     {
         const auto nodeFinalizer = [](qjs::Runtime const&, qjs::Value const& value) {
             auto* ptr = value.getOpaque<CCNode*>();
-            // log::info("node finalizer called! {}", ptr);
             if (ptr) ptr->release();
         };
 
         auto node = rt.createClass("Node", nodeFinalizer).unwrap();
         auto nodeProto = ctx.createObject();
+        nodeProto.setProperty("debug", [](qjs::Context, qjs::Value self) {
+            return geode::format_as(self.getOpaque<CCNode*>());
+        });
+        nodeProto.setProperty("addrId", [](qjs::Context, qjs::Value self) {
+            return addrToId(self.getOpaque<CCNode*>());
+        });
         nodeProto.setProperty("addChild",
             ctx.createFunction("<Node>.addChild", [](qjs::Context, qjs::Value self, CCNode* child) {
                 self.getOpaque<CCNode*>()->addChild(child);
@@ -162,7 +174,11 @@ std::unique_ptr<Script> loadScript(CCNode* node, std::string_view path) {
             })
         );
         nodeProto.setProperty("getParent",
-            ctx.createFunction("<Node>.getParent", [](qjs::Context, qjs::Value self) {
+            ctx.createFunction("<Node>.getParent", [](qjs::Context ctx, qjs::Value self) -> CCNode* {
+                if (!ctx.isInstanceOfClass(self, "Node")) {
+                    ctx.throwTypeError("Expected Node, got {}", self.getTypeName());
+                    return nullptr;
+                }
                 return self.getOpaque<CCNode*>()->getParent();
             })
         );
@@ -189,7 +205,6 @@ std::unique_ptr<Script> loadScript(CCNode* node, std::string_view path) {
                 auto name = args[0].toString();
                 auto const& value = args[1];
                 auto* node = self.getOpaque<CCNode*>();
-                log::info("Tried to set property {} on {}", name, node);
                 if (auto* button = typeinfo_cast<geode::Button*>(node)) {
                     if (name == "onClick") {
                         if (!value.isFunction()) {

@@ -25,6 +25,7 @@ public:
 		this->addChildAtPosition(root, Anchor::Center);
 		this->ignoreAnchorPointForPosition(true);
 
+		log::info("-- loading script --");
 		script = loadScript(root, "C:\\Users\\Mateus\\Coding\\qjs-solid\\scripts\\app.js");
 		this->scheduleUpdate();
 		this->ignoreAnchorPointForPosition(true);

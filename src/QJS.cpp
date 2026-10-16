@@ -706,7 +706,6 @@ Result<std::optional<Value>> Module::tick() {
             // If that failed, return error
             else {
                 auto exp = m_ctx.getException().toString();
-                // log::info("error: {}", exp);
                 return Err(exp);
             }
         } break;
@@ -717,7 +716,6 @@ Result<std::optional<Value>> Module::tick() {
             auto message = error.getProperty("message").transform(&Value::toString).value_or("");
             auto stack = error.getProperty("stack").transform(&Value::toString).value_or("");
             return Err(fmt::format("{}: {}\n{}", name, message, stack));
-            // return Err(m_promise.getPromiseResult()->toString());
         } break;
 
         case JS_PROMISE_NOT_A_PROMISE: {

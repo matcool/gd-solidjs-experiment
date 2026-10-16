@@ -1,24 +1,28 @@
 import { createRenderer } from "solid-js/universal";
-import htm from 'htm';
+import htm from 'htm/mini';
 
 export const {
   render, effect, memo, createComponent, createElement, createTextNode,
   insertNode, insert, spread, setProp, mergeProps, use,
 } = createRenderer({
   createElement(type) {
+    // console.log("RENDERER createElement", type);
     return createAnyNode(type, {});
   },
   createTextNode(text) {
+    // console.log("RENDERER createTextNode", text);
     return createLabelNode(String(text));
   },
   isTextNode(node) {
+    // console.log("RENDERER isTextNode", node?.debug);
     return node instanceof Label;
   },
   replaceText(node, text) {
-    console.log("Replacing text! to", text);
+    // console.log("RENDERER replaceText", node?.debug, text);
     node.setText(text);
   },
   insertNode(parent, node, anchor) {
+    // console.log("RENDERER insertNode", parent?.debug, node?.debug, anchor?.debug);
     if (!anchor) {
       parent.addChild(node);
     } else {
@@ -27,24 +31,30 @@ export const {
     parent.updateLayout();
   },
   removeNode(parent, node) {
+    // console.log("RENDERER removeNode", parent?.debug, node?.debug);
     parent.removeChild(node);
     parent.updateLayout();
   },
   setProperty(node, name, value) {
-    console.log("setting property", name, "to", value);
+    // console.log("RENDERER setProperty", node?.debug, name?.debug, value?.debug);
     node.setProperty(name, value);
   },
   getParentNode(node) {
+    // console.log("RENDERER getParentNode", node?.debug);
     return node.getParent() ?? undefined;
   },
   getFirstChild(node) {
+    // console.log("RENDERER getFirstChild", node?.debug);
     return node.getChildren()[0];
   },
   getNextSibling(node) {
+    // console.log("RENDERER getNextSibling", node?.debug);
     const p = node.getParent();
     if (!p) return undefined;
     const children = p.getChildren();
-    return children[children.indexOf(node) + 1];
+    const idx = children.findIndex(child => child.addrId === node.addrId);
+    if (idx === -1) return undefined;
+    return children[idx + 1];
   },
 });
 
@@ -65,8 +75,16 @@ export {
 
 function h(type, props, ...children) {
   if (typeof type === 'function') {
-    const c = children.length === 1 ? children[0] : children;
-    return createComponent(type, { ...props, children: c });
+    const p = {};
+    for (const [k, v] of Object.entries(props ?? {})) {
+      if (typeof v === "function" && !k.startsWith("on")) {
+        Object.defineProperty(p, k, { get: v, enumerable: true });
+      } else {
+        p[k] = v;
+      }
+    }
+    p.children = children.length === 1 ? children[0] : children;
+    return createComponent(type, p);
   }
   
   const node = createElement(type);

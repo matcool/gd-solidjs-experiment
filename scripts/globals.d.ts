@@ -17,6 +17,9 @@ declare class Node {
     updateLayout(): void;
 
     setProperty(prop: string, value: any): void;
+
+    readonly debug: string;
+    readonly addrId: number;
 }
 
 declare class Label extends Node {
