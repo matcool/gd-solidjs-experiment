@@ -1,5 +1,5 @@
 import { render, For, createSignal, children, createEffect, createMemo, insert } from "./renderer";
-import type { Component, ParentComponent } from "./renderer";
+import type { Component, ParentComponent } from "solid-js";
 
 const Column: ParentComponent = (props) => {
   const kids = children(() => props.children);
@@ -19,15 +19,10 @@ const Text: ParentComponent = (props) => {
   const text = children(() => props.children);
   const node = createLabelNode(String(text()));
 
-  createEffect(() => {
-    // console.log("updating Text to", text());
-    node.setText(String(text()))
-  });
+  createEffect(() => { node.setText(String(text())) });
 
   return node;
 };
-
-type Foo = JSX.Element;
 
 const App: Component = () => {
   const [count, setCount] = createSignal(1);
@@ -45,4 +40,4 @@ const App: Component = () => {
 }
 
 const root = getScene();
-render(() => App({}), root);
+render(() => <App /> as Node, root);

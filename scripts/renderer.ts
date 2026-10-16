@@ -105,6 +105,6 @@ export function h(type: any, props: Record<string, any>, ...children: any[]) {
 
 export const html = htm.bind(h);
 
-export type Component<P extends Record<string, any> = {}> = (props: P) => JSX.Element;
-export type VoidComponent<P extends Record<string, any> = {}> = Component<P & { children?: never }>;
-export type ParentComponent<P extends Record<string, any> = {}> = Component<P & { children?: any }>;
+// export type Component<P extends Record<string, any> = {}> = (props: P) => Node;
+// export type VoidComponent<P extends Record<string, any> = {}> = Component<P & { children?: never }>;
+// export type ParentComponent<P extends Record<string, any> = {}> = Component<P & { children?: any }>;

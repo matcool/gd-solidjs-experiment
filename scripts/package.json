@@ -7,7 +7,8 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "build": "babel app.tsx -o app.compiled.mjs && esbuild app.compiled.mjs --bundle --format=esm --conditions=browser --outfile=dist.mjs"
+    "build": "babel app.tsx -o app.compiled.mjs && esbuild app.compiled.mjs --bundle --format=esm --conditions=browser --outfile=dist.mjs",
+    "watch": "nodemon -e ts,tsx --ignore *.mjs --ignore node_modules --exec \"node --run build\""
   },
   "dependencies": {
     "htm": "^3.1.1",
@@ -18,6 +19,7 @@
     "@babel/plugin-syntax-jsx": "^8.0.1",
     "@babel/preset-typescript": "^8.0.7",
     "babel-preset-solid": "^1.9.16",
-    "esbuild": "^0.28.2"
+    "esbuild": "^0.28.2",
+    "nodemon": "^3.1.14"
   }
 }
