@@ -1,5 +1,5 @@
-import { render, For, createSignal, children, createEffect, createMemo, insert } from "./renderer";
-import type { Component, ParentComponent } from "solid-js";
+import { type Component, type ParentComponent, For, children, createEffect, createMemo, createSignal } from "solid-js";
+import { insert, render } from "./renderer";
 
 const Column: ParentComponent = (props) => {
   const kids = children(() => props.children);
@@ -8,7 +8,7 @@ const Column: ParentComponent = (props) => {
   return node;
 };
 
-const Button: ParentComponent<{onClick: () => void}> = (props) => {
+const Button: ParentComponent<{ onClick: () => void }> = (props) => {
   const label = props.children!.toString();
   const node = createAnyNode("Button", { label })!;
   node!.setProperty("onClick", props.onClick);

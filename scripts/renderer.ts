@@ -58,21 +58,6 @@ export const {
   },
 });
 
-export {
-  For,
-  Show,
-  Suspense,
-  SuspenseList,
-  Switch,
-  Match,
-  Index,
-  ErrorBoundary,
-  createSignal,
-  createEffect,
-  children,
-  createMemo,
-} from "solid-js";
-
 export function h(type: any, props: Record<string, any>, ...children: any[]) {
   if (typeof type === 'function') {
     const p: Record<string, any> = {};
@@ -104,7 +89,3 @@ export function h(type: any, props: Record<string, any>, ...children: any[]) {
 }
 
 export const html = htm.bind(h);
-
-// export type Component<P extends Record<string, any> = {}> = (props: P) => Node;
-// export type VoidComponent<P extends Record<string, any> = {}> = Component<P & { children?: never }>;
-// export type ParentComponent<P extends Record<string, any> = {}> = Component<P & { children?: any }>;

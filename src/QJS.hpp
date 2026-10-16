@@ -28,7 +28,7 @@ namespace qjs {
     class Runtime final {
     public:
         class OpaqueData;
-        
+
     private:
         JSRuntime* m_rt;
         bool m_managed = true;
@@ -76,7 +76,7 @@ namespace qjs {
 
         Runtime getRuntime(std::source_location const src = std::source_location::current()) const;
         JSContext* getRaw() const;
-        
+
         Value getGlobalObject() const;
         Value getException() const;
 
@@ -118,7 +118,7 @@ namespace qjs {
 
         template <class T>
         Value createCpp(T&& cppValue);
-        
+
         Result<Module> eval(std::string_view code, std::string_view filename);
 
         Value getClassProto(JSClassID id) const;
@@ -214,6 +214,30 @@ namespace qjs {
         std::optional<Value> getPrototype() const;
         void setPrototype(Value const& proto);
         bool isInstanceOf(Value const& proto) const;
+
+        template <class F>
+        void setCreateFunction(std::string_view name, F&& function) {
+            auto* ctx = std::get_if<0>(&m_ctxOrRt);
+            if (!ctx) return;
+            std::string_view propName = name;
+            auto idx = name.find('.');
+            if (idx != std::string_view::npos) {
+                propName = name.substr(idx + 1);
+            }
+            this->setProperty(propName, ctx->createFunction(name, std::forward<F>(function)));
+        }
+
+        template <class F>
+        void setCreateFunctionBare(std::string_view name, F&& function) {
+            auto* ctx = std::get_if<0>(&m_ctxOrRt);
+            if (!ctx) return;
+            std::string_view propName = name;
+            auto idx = name.find('.');
+            if (idx != std::string_view::npos) {
+                propName = name.substr(idx + 1);
+            }
+            this->setProperty(propName, ctx->createFunctionBare(name, std::forward<F>(function)));
+        }
     };
 
     class Module final {
@@ -299,11 +323,14 @@ namespace qjs {
 
         template <>
         struct JsTypeToCpp<JSValue> {
+            static Result<JSValue> from(Context, Value arg) {
+                return Ok(std::move(arg).takeValue());
+            }
             static Value to(Context ctx, JSValue value) {
                 return Value::copy(ctx, value);
             }
         };
-        // static_assert(IsValidJsTypeToCpp<Value>);
+        static_assert(IsValidJsTypeToCpp<Value>);
 
         template <>
         struct JsTypeToCpp<bool> {
@@ -529,7 +556,7 @@ namespace qjs {
 
         template <class... Args, size_t... Indices>
         auto apply(auto&& func, auto&& first, auto&& second, std::tuple<Args...>&& args, std::index_sequence<Indices...>) {
-            return func(first, second, std::get<Indices>(args)...); 
+            return func(first, second, std::get<Indices>(args)...);
         }
         template <class A, class B, class... Args>
         auto apply(auto&& func, A&& first, B&& second, std::tuple<Args...>&& args) {
@@ -633,7 +660,7 @@ namespace qjs {
         // log::info("throwing type error: {}", msg);
         return Value::own(*this, JS_ThrowTypeError(m_ctx, "%s", msg.c_str()));
     }
-    
+
     template <class F>
     Value Context::createFunction(std::string_view name, F&& function) {
         return this->createFunctionBare("", detail::wrapFunction<F>(name, std::move(function)));
