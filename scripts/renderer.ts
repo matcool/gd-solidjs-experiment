@@ -5,11 +5,11 @@ export const {
   render, effect, memo, createComponent, createElement, createTextNode,
   insertNode, insert, spread, setProp, mergeProps, use,
 } = createRenderer({
-  createElement(type) {
+  createElement(type: string) {
     // console.log("RENDERER createElement", type);
-    return createAnyNode(type, {});
+    return createAnyNode(type, {})!;
   },
-  createTextNode(text) {
+  createTextNode(text: string) {
     // console.log("RENDERER createTextNode", text);
     return createLabelNode(String(text));
   },
@@ -19,40 +19,40 @@ export const {
   },
   replaceText(node, text) {
     // console.log("RENDERER replaceText", node?.debug, text);
-    node.setText(text);
+    (node as Label).setText(text);
   },
   insertNode(parent, node, anchor) {
     // console.log("RENDERER insertNode", parent?.debug, node?.debug, anchor?.debug);
     if (!anchor) {
-      parent.addChild(node);
+      parent!.addChild(node!);
     } else {
-      parent.insertAfter(node, anchor);
+      parent!.insertAfter(node!, anchor);
     }
-    parent.updateLayout();
+    parent!.updateLayout();
   },
   removeNode(parent, node) {
     // console.log("RENDERER removeNode", parent?.debug, node?.debug);
-    parent.removeChild(node);
-    parent.updateLayout();
+    parent!.removeChild(node!);
+    parent!.updateLayout();
   },
   setProperty(node, name, value) {
     // console.log("RENDERER setProperty", node?.debug, name?.debug, value?.debug);
-    node.setProperty(name, value);
+    node!.setProperty(name, value);
   },
   getParentNode(node) {
     // console.log("RENDERER getParentNode", node?.debug);
-    return node.getParent() ?? undefined;
+    return node!.getParent() ?? undefined;
   },
   getFirstChild(node) {
     // console.log("RENDERER getFirstChild", node?.debug);
-    return node.getChildren()[0];
+    return node!.getChildren()[0];
   },
   getNextSibling(node) {
     // console.log("RENDERER getNextSibling", node?.debug);
-    const p = node.getParent();
+    const p = node!.getParent();
     if (!p) return undefined;
     const children = p.getChildren();
-    const idx = children.findIndex(child => child.addrId === node.addrId);
+    const idx = children.findIndex(child => child.addrId === node!.addrId);
     if (idx === -1) return undefined;
     return children[idx + 1];
   },
@@ -73,9 +73,9 @@ export {
   createMemo,
 } from "solid-js";
 
-function h(type, props, ...children) {
+export function h(type: any, props: Record<string, any>, ...children: any[]) {
   if (typeof type === 'function') {
-    const p = {};
+    const p: Record<string, any> = {};
     for (const [k, v] of Object.entries(props ?? {})) {
       if (typeof v === "function" && !k.startsWith("on")) {
         Object.defineProperty(p, k, { get: v, enumerable: true });
@@ -104,3 +104,7 @@ function h(type, props, ...children) {
 }
 
 export const html = htm.bind(h);
+
+export type Component<P extends Record<string, any> = {}> = (props: P) => JSX.Element;
+export type VoidComponent<P extends Record<string, any> = {}> = Component<P & { children?: never }>;
+export type ParentComponent<P extends Record<string, any> = {}> = Component<P & { children?: any }>;

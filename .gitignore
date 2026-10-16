@@ -2,7 +2,8 @@ build/
 .cache/
 .vscode/
 old/
-renderer/*
+node_modules/
+package-lock.json
+scripts/renderer.plain.js
+scripts/renderer.mjs
 *.mjs
-!renderer/renderer.js
-!renderer/package.json

@@ -1,0 +1,23 @@
+{
+  "name": "renderer",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "build": "babel app.tsx -o app.compiled.mjs && esbuild app.compiled.mjs --bundle --format=esm --conditions=browser --outfile=dist.mjs"
+  },
+  "dependencies": {
+    "htm": "^3.1.1",
+    "solid-js": "^1.9.17"
+  },
+  "devDependencies": {
+    "@babel/cli": "^8.0.6",
+    "@babel/plugin-syntax-jsx": "^8.0.1",
+    "@babel/preset-typescript": "^8.0.7",
+    "babel-preset-solid": "^1.9.16",
+    "esbuild": "^0.28.2"
+  }
+}

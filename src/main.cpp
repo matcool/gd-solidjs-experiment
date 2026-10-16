@@ -26,7 +26,7 @@ public:
 		this->ignoreAnchorPointForPosition(true);
 
 		log::info("-- loading script --");
-		script = loadScript(root, "C:\\Users\\Mateus\\Coding\\qjs-solid\\scripts\\app.js");
+		script = loadScript(root, "C:\\Users\\Mateus\\Coding\\qjs-solid\\scripts\\dist.mjs");
 		this->scheduleUpdate();
 		this->ignoreAnchorPointForPosition(true);
 

@@ -1,0 +1,9 @@
+{
+  "presets": [
+    ["babel-preset-solid", { "generate": "universal", "moduleName": "./renderer" }],
+    "@babel/preset-typescript"
+  ],
+  "overrides": [
+    { "test": "**/*.tsx", "plugins": ["@babel/plugin-syntax-jsx"] }
+  ]
+}
