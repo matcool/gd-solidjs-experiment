@@ -30,6 +30,7 @@ const App: Component = () => {
     const len = count();
     return new Array(len).fill(0).map((_, i) => i);
   });
+
   return <Column>
     <Button onClick={() => setCount(count() + 1)}>Click me!</Button>
     <Text>{count()}</Text>

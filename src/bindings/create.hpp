@@ -8,16 +8,9 @@ using namespace std::string_view_literals;
 namespace binds {
 
 static qjs::Value createAnyNode(qjs::Context ctx, qjs::Value, std::string name, std::unordered_map<std::string, qjs::Value> props) {
-    if (name == "Row"sv) {
+    if (name == "Row"sv || name == "Column"sv) {
         auto* node = CCNode::create();
-        auto* layout = geode::SimpleRowLayout::create()
-            ->setCrossAxisScaling(AxisScaling::Grow)
-            ->setMainAxisScaling(AxisScaling::Grow);
-        node->setLayout(layout);
-        return ctx.createCpp(node);
-    } else if (name == "Column"sv) {
-        auto* node = CCNode::create();
-        auto* layout = geode::SimpleColumnLayout::create()
+        auto* layout = geode::SimpleAxisLayout::create(name == "Row"sv ? Axis::Row : Axis::Column)
             ->setCrossAxisScaling(AxisScaling::Grow)
             ->setMainAxisScaling(AxisScaling::Grow);
         node->setLayout(layout);
